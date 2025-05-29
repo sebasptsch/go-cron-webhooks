@@ -1,0 +1,5 @@
+services:
+  go-cron-webhook:
+    build:
+      context: .
+      dockerfile: Dockerfile

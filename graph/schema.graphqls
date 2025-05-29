@@ -1,0 +1,22 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type CronWebhook {
+  id: ID!
+  url: String!
+  cronExpression: String!
+  enabled: Boolean!
+}
+
+type Query {
+  cronWebhooks: [CronWebhook!]!
+  cronWebhook(id: ID!): CronWebhook
+}
+
+type Mutation {
+  createCronWebhook(url: String!, cronExpression: String!): CronWebhook!
+  triggerWebhook(id: ID!): Boolean!
+  updateCronWebhook(id: ID!, url: String, cronExpression: String, enabled: Boolean): CronWebhook!
+  deleteCronWebhook(id: ID!): Boolean!
+}
