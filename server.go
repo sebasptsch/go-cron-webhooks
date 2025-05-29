@@ -22,11 +22,17 @@ const defaultPort = "8080"
 
 func main() {
 	port := os.Getenv("PORT")
+	database_url := os.Getenv("DATABASE_URL")
 	if port == "" {
 		port = defaultPort
 	}
 
-	db, err := gorm.Open(sqlite.Open("cron_webhooks.db"), &gorm.Config{})
+	if database_url == "" {
+		log.Println("DATABASE_URL not set, using default SQLite database")
+		database_url = "cron_webhooks.db"
+	}
+
+	db, err := gorm.Open(sqlite.Open(database_url), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
