@@ -3,10 +3,11 @@
 package model
 
 type CronWebhook struct {
-	ID             string `json:"id"`
-	URL            string `json:"url"`
-	CronExpression string `json:"cronExpression"`
-	Enabled        bool   `json:"enabled"`
+	ID             string  `json:"id"`
+	URL            string  `json:"url"`
+	CronExpression string  `json:"cronExpression"`
+	Enabled        bool    `json:"enabled"`
+	NextRun        *string `json:"nextRun,omitempty"`
 }
 
 type Mutation struct {

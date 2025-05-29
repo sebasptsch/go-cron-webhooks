@@ -51,6 +51,7 @@ type ComplexityRoot struct {
 		CronExpression func(childComplexity int) int
 		Enabled        func(childComplexity int) int
 		ID             func(childComplexity int) int
+		NextRun        func(childComplexity int) int
 		URL            func(childComplexity int) int
 	}
 
@@ -117,6 +118,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CronWebhook.ID(childComplexity), true
+
+	case "CronWebhook.nextRun":
+		if e.complexity.CronWebhook.NextRun == nil {
+			break
+		}
+
+		return e.complexity.CronWebhook.NextRun(childComplexity), true
 
 	case "CronWebhook.url":
 		if e.complexity.CronWebhook.URL == nil {
@@ -801,6 +809,47 @@ func (ec *executionContext) fieldContext_CronWebhook_enabled(_ context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _CronWebhook_nextRun(ctx context.Context, field graphql.CollectedField, obj *model.CronWebhook) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_CronWebhook_nextRun(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NextRun, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_CronWebhook_nextRun(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CronWebhook",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_createCronWebhook(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_createCronWebhook(ctx, field)
 	if err != nil {
@@ -829,7 +878,7 @@ func (ec *executionContext) _Mutation_createCronWebhook(ctx context.Context, fie
 	}
 	res := resTmp.(*model.CronWebhook)
 	fc.Result = res
-	return ec.marshalNCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
+	return ec.marshalNCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_createCronWebhook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -848,6 +897,8 @@ func (ec *executionContext) fieldContext_Mutation_createCronWebhook(ctx context.
 				return ec.fieldContext_CronWebhook_cronExpression(ctx, field)
 			case "enabled":
 				return ec.fieldContext_CronWebhook_enabled(ctx, field)
+			case "nextRun":
+				return ec.fieldContext_CronWebhook_nextRun(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CronWebhook", field.Name)
 		},
@@ -949,7 +1000,7 @@ func (ec *executionContext) _Mutation_updateCronWebhook(ctx context.Context, fie
 	}
 	res := resTmp.(*model.CronWebhook)
 	fc.Result = res
-	return ec.marshalNCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
+	return ec.marshalNCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_updateCronWebhook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -968,6 +1019,8 @@ func (ec *executionContext) fieldContext_Mutation_updateCronWebhook(ctx context.
 				return ec.fieldContext_CronWebhook_cronExpression(ctx, field)
 			case "enabled":
 				return ec.fieldContext_CronWebhook_enabled(ctx, field)
+			case "nextRun":
+				return ec.fieldContext_CronWebhook_nextRun(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CronWebhook", field.Name)
 		},
@@ -1069,7 +1122,7 @@ func (ec *executionContext) _Query_cronWebhooks(ctx context.Context, field graph
 	}
 	res := resTmp.([]*model.CronWebhook)
 	fc.Result = res
-	return ec.marshalNCronWebhook2ᚕᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhookᚄ(ctx, field.Selections, res)
+	return ec.marshalNCronWebhook2ᚕᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhookᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_cronWebhooks(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1088,6 +1141,8 @@ func (ec *executionContext) fieldContext_Query_cronWebhooks(_ context.Context, f
 				return ec.fieldContext_CronWebhook_cronExpression(ctx, field)
 			case "enabled":
 				return ec.fieldContext_CronWebhook_enabled(ctx, field)
+			case "nextRun":
+				return ec.fieldContext_CronWebhook_nextRun(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CronWebhook", field.Name)
 		},
@@ -1120,7 +1175,7 @@ func (ec *executionContext) _Query_cronWebhook(ctx context.Context, field graphq
 	}
 	res := resTmp.(*model.CronWebhook)
 	fc.Result = res
-	return ec.marshalOCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
+	return ec.marshalOCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_cronWebhook(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1139,6 +1194,8 @@ func (ec *executionContext) fieldContext_Query_cronWebhook(ctx context.Context, 
 				return ec.fieldContext_CronWebhook_cronExpression(ctx, field)
 			case "enabled":
 				return ec.fieldContext_CronWebhook_enabled(ctx, field)
+			case "nextRun":
+				return ec.fieldContext_CronWebhook_nextRun(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type CronWebhook", field.Name)
 		},
@@ -3278,6 +3335,8 @@ func (ec *executionContext) _CronWebhook(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "nextRun":
+			out.Values[i] = ec._CronWebhook_nextRun(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3813,11 +3872,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCronWebhook2sebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v model.CronWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalNCronWebhook2goᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v model.CronWebhook) graphql.Marshaler {
 	return ec._CronWebhook(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCronWebhook2ᚕᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CronWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalNCronWebhook2ᚕᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhookᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CronWebhook) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -3841,7 +3900,7 @@ func (ec *executionContext) marshalNCronWebhook2ᚕᚖsebasptschᚋgoᚑcronᚑw
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, sel, v[i])
+			ret[i] = ec.marshalNCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -3861,7 +3920,7 @@ func (ec *executionContext) marshalNCronWebhook2ᚕᚖsebasptschᚋgoᚑcronᚑw
 	return ret
 }
 
-func (ec *executionContext) marshalNCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v *model.CronWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalNCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v *model.CronWebhook) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4186,7 +4245,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOCronWebhook2ᚖsebasptschᚋgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v *model.CronWebhook) graphql.Marshaler {
+func (ec *executionContext) marshalOCronWebhook2ᚖgoᚑcronᚑwebhooksᚋgraphᚋmodelᚐCronWebhook(ctx context.Context, sel ast.SelectionSet, v *model.CronWebhook) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

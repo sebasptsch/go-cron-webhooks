@@ -7,6 +7,7 @@ type CronWebhook {
   url: String!
   cronExpression: String!
   enabled: Boolean!
+  nextRun: String
 }
 
 type Query {

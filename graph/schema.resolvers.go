@@ -9,6 +9,7 @@ import (
 	"fmt"
 	database_models "go-cron-webhooks/database-models"
 	"go-cron-webhooks/graph/model"
+	"time"
 )
 
 // CreateCronWebhook is the resolver for the createCronWebhook field.
@@ -23,17 +24,32 @@ func (r *mutationResolver) CreateCronWebhook(ctx context.Context, url string, cr
 		return nil, fmt.Errorf("failed to create cron webhook: %w", err)
 	}
 	// Create the model.CronWebhook from the database model
+
+	// Add to the cron runner
+	cronId, err := r.C.AddFunc(newWebhook.Cron, func() {
+		database_models.RunWebhook(r.DB, newWebhook)
+	})
+
+	nextRun := r.C.Entry(cronId).Next.Format(time.RFC3339)
+
+	if err != nil {
+		// delete the webhook from the database if cron job creation fails
+		if dbErr := r.DB.Delete(newWebhook).Error; dbErr != nil {
+			return nil, fmt.Errorf("failed to delete cron webhook after cron job creation failure: %w", dbErr)
+		}
+
+		return nil, fmt.Errorf("failed to add cron job for webhook %d: %w", newWebhook.ID, err)
+	}
+
 	createdWebhook := &model.CronWebhook{
 		ID:             fmt.Sprintf("%d", newWebhook.ID),
 		URL:            newWebhook.URL,
 		CronExpression: newWebhook.Cron,
 		Enabled:        newWebhook.Enabled,
+		NextRun:        &nextRun,
 	}
 
-	// Add to the cron runner
-	r.C.AddFunc(newWebhook.Cron, func() {
-		database_models.RunWebhook(r.DB, newWebhook)
-	})
+	r.WebhookMap[newWebhook.ID] = cronId
 
 	// return the created webhook
 	return createdWebhook, nil
@@ -88,25 +104,28 @@ func (r *mutationResolver) UpdateCronWebhook(ctx context.Context, id string, url
 		delete(r.WebhookMap, existingWebhook.ID)
 	}
 
+	updatedWebhook := &model.CronWebhook{
+		ID:             fmt.Sprintf("%d", existingWebhook.ID),
+		URL:            existingWebhook.URL,
+		CronExpression: existingWebhook.Cron,
+		Enabled:        existingWebhook.Enabled,
+		NextRun:        nil, // NextRun will be set if the webhook is enabled
+	}
 	// re-create webhook if enabled
 	if existingWebhook.Enabled {
-		entryID, err := r.C.AddFunc(existingWebhook.Cron, func() {
+		newEntryId, err := r.C.AddFunc(existingWebhook.Cron, func() {
 			database_models.RunWebhook(r.DB, &existingWebhook)
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to add cron job for webhook %d: %w", existingWebhook.ID, err)
 		}
 		// Store the entry ID in the WebhookMap
-		r.WebhookMap[existingWebhook.ID] = entryID
+		r.WebhookMap[existingWebhook.ID] = newEntryId
+		nextRunIso := r.C.Entry(newEntryId).Next.Format(time.RFC3339)
+		updatedWebhook.NextRun = &nextRunIso
 	}
 
 	// Create the model.CronWebhook from the updated database model
-	updatedWebhook := &model.CronWebhook{
-		ID:             fmt.Sprintf("%d", existingWebhook.ID),
-		URL:            existingWebhook.URL,
-		CronExpression: existingWebhook.Cron,
-		Enabled:        existingWebhook.Enabled,
-	}
 
 	return updatedWebhook, nil
 }
@@ -147,12 +166,22 @@ func (r *queryResolver) CronWebhooks(ctx context.Context) ([]*model.CronWebhook,
 	// Convert database models to GraphQL models
 	var result []*model.CronWebhook
 	for _, webhook := range webhooks {
-		result = append(result, &model.CronWebhook{
+
+		// get entry ID from the cron runner if it exists
+		webhookModel := &model.CronWebhook{
 			ID:             fmt.Sprintf("%d", webhook.ID),
 			URL:            webhook.URL,
 			CronExpression: webhook.Cron,
 			Enabled:        webhook.Enabled,
-		})
+			NextRun:        nil, // NextRun will be set if the webhook is enabled
+		}
+
+		if entryID, exists := r.WebhookMap[webhook.ID]; exists {
+			nextRunIso := r.C.Entry(entryID).Next.Format(time.RFC3339)
+			webhookModel.NextRun = &nextRunIso
+		}
+
+		result = append(result, webhookModel)
 	}
 
 	return result, nil
@@ -166,13 +195,21 @@ func (r *queryResolver) CronWebhook(ctx context.Context, id string) (*model.Cron
 		return nil, fmt.Errorf("failed to find cron webhook with ID %s: %w", id, err)
 	}
 
-	// Convert the database model to GraphQL model
-	return &model.CronWebhook{
+	webhookModel := &model.CronWebhook{
 		ID:             fmt.Sprintf("%d", webhook.ID),
 		URL:            webhook.URL,
 		CronExpression: webhook.Cron,
 		Enabled:        webhook.Enabled,
-	}, nil
+		NextRun:        nil, // NextRun will be set if the webhook is enabled
+	}
+
+	if entryID, exists := r.WebhookMap[webhook.ID]; exists {
+		nextRunIso := r.C.Entry(entryID).Next.Format(time.RFC3339)
+		webhookModel.NextRun = &nextRunIso
+	}
+
+	// Convert the database model to GraphQL model
+	return webhookModel, nil
 }
 
 // Mutation returns MutationResolver implementation.
